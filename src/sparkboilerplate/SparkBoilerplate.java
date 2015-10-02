@@ -13,7 +13,6 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
-
 import org.slf4j.LoggerFactory;
 import spark.ExceptionHandler;
 import spark.Filter;
@@ -38,6 +37,7 @@ public class SparkBoilerplate
     ////////////////////////////////////////////////////////////////////////////////
     public static PrivateKey JWTPrivateKey;
     public static PublicKey JWTPublicKey;
+    public static Token token;
 
     ////////////////////////////////////////////////////////////////////////////////
     public static void main(String[] args)
@@ -72,10 +72,11 @@ public class SparkBoilerplate
             public void handle(Request rqst, Response rspns) throws Exception
             {
                 boolean authenticated = true;
-                String token = rqst.headers("token");
+                String tokenString = rqst.headers("token");
                 try
                 {
-                    checkSignString(token);
+                    token = checkSignObject(tokenString, Token.class);
+                    //System.out.println(token.date);
                 }
                 catch(Exception e)
                 {
@@ -163,7 +164,7 @@ public class SparkBoilerplate
                 String password = rqst.params(":password");
                 if(password.equals(REST_PASSWORD))
                 {
-                    return signString(Long.toString(System.currentTimeMillis()));
+                    return signObject(new Token("username", System.currentTimeMillis()));
                 }
                 else
                 {
@@ -184,10 +185,11 @@ public class SparkBoilerplate
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    private static String signString(String string) throws Exception
+    private static String signObject(Object object) throws Exception
     {
+        Gson gson = new Gson();
         JsonWebSignature jws = new JsonWebSignature();
-        jws.setPayload(string);
+        jws.setPayload(gson.toJson(object));
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
         jws.setKey(JWTPrivateKey);
         return jws.getCompactSerialization();
@@ -195,13 +197,14 @@ public class SparkBoilerplate
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    private static String checkSignString(String string) throws Exception
+    private static <T> T checkSignObject(String jwtString, Class<T> type) throws Exception
     {
         JsonWebSignature jws = new JsonWebSignature();
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
         jws.setKey(JWTPublicKey);
-        jws.setCompactSerialization(string);
-        return jws.getPayload();
+        jws.setCompactSerialization(jwtString);
+        Gson gson = new Gson();
+        return gson.fromJson(jws.getPayload(), type);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -233,21 +236,6 @@ public class SparkBoilerplate
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    private static class Person
-    {
-
-        public String name;
-        public String power;
-
-        public Person(String name, String power)
-        {
-            this.name = name;
-            this.power = power;
-        }
-
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
     private static class JsonTransformer implements ResponseTransformer
     {
 
@@ -265,5 +253,33 @@ public class SparkBoilerplate
     {
         Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         root.setLevel(ch.qos.logback.classic.Level.ERROR);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    private static class Person
+    {
+
+        public String name;
+        public String power;
+
+        public Person(String name, String power)
+        {
+            this.name = name;
+            this.power = power;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    private static class Token
+    {
+
+        public String name;
+        public long date;
+
+        public Token(String name, long date)
+        {
+            this.name = name;
+            this.date = date;
+        }
     }
 }
