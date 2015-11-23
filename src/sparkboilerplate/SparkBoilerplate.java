@@ -26,7 +26,7 @@ public class SparkBoilerplate
 {
 
     ////////////////////////////////////////////////////////////////////////////////
-    public static final int REST_PORT = 8080;
+    public static final int REST_PORT = 8087;
     public static final String REST_PASSWORD = "ilovekate";
     public static final String JWT_PRIVATE_KEY_FILE = "./jwt/private_key.der";
     public static final String JWT_PUBLIC_KEY_FILE = "./jwt/public_key.der";

@@ -1,0 +1,25 @@
+<ivy-module version="2.0">
+
+    <info organisation="com.lucasmouilleron" module="SparkBoilerplate"/>
+
+    <configurations defaultconfmapping="default->default">
+        <conf name="default" />
+    </configurations>
+
+    <dependencies>
+
+        <!--///////////////////////////////////////////////////////////////-->
+        <dependency org="com.sparkjava" name="spark-core" rev="2.3" />
+
+        <!--///////////////////////////////////////////////////////////////-->
+        <dependency org="org.bitbucket.b_c" name="jose4j" rev="0.4.4" />
+
+        <!--///////////////////////////////////////////////////////////////-->
+        <dependency org="com.google.code.gson" name="gson" rev="2.4" />
+
+        <!--///////////////////////////////////////////////////////////////-->
+        <dependency org="ch.qos.logback" name="logback" rev="0.5" />
+        <dependency org="ch.qos.logback" name="logback-classic" rev="1.1.3" />
+
+    </dependencies>
+</ivy-module>

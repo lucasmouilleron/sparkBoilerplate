@@ -1,6 +1,18 @@
 sparkBoilerplate
 ================
 
+Install
+-------
+- Install JDK 8
+- Install Apache Ant
+- Install Apache Ivy
+- Get dependencies : `an getDependencies`
+
+Run and test
+------------
+- Run : `ant run`
+- `https://localhost:8087/hello`
+
 Authentication
 --------------
 - JWT
@@ -10,8 +22,6 @@ Authentication
     - Public key java format : `openssl rsa -in private_key.pem -pubout -outform DER -out public_key.der`
 - Get token : `curl -k https://localhost:8080/login/ilovekate`
 - Acces restricted area : `curl -k --header "token: eyJhbGciOiJSUzI1NiJ9.eyJuYW1lIjoidXNlcm5hbWUiLCJkYXRlIjoxNDQzNzgwODU3NDcyfQ.A6b6Hg1QyYgYUV8J9wff6SvclX90Ydmx6sd8OzTAXYJ6gLpkXMBaHvOLtyxu35hSiiVwrOljnfLSg__tlbzh6PG8KrMuezwCQHttnQzowfp5CxNWM5mEXcMjHiCMLGW3X_p5MV6hm7pe7M8aBDKlZj__OHEMPogFGSga5HhnRDnRfzY49cW9CgzdtfCY3c-wWwabyoy75kQTk5GG2KUOZPy5xKT9EJvL1JLlGKkCl4Il8zNGm2cpP68_hIqCohLqEfbMXjBdccYU7DsjQowBxtjQcZD92pu-6rHKhWcJVlNC32BqvPQXn5laKCm9Dpq703Km_IWvEPz0LPXDtIZ9Gg" https://localhost:8080/protected`
-
-
 
 SSL
 ---
