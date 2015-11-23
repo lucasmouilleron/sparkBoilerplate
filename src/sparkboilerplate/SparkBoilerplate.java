@@ -2,6 +2,7 @@ package sparkboilerplate;
 
 import ch.qos.logback.classic.Logger;
 import com.google.gson.Gson;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,6 +12,7 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
+
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.slf4j.LoggerFactory;
@@ -93,95 +95,103 @@ public class SparkBoilerplate
         Spark.before("/otherProtected", protectedFiler);
 
         // EXCEPTIONS
-        Spark.exception(Exception.class, new ExceptionHandler()
-        {
+        Spark.exception(
+                Exception.class, new ExceptionHandler()
+                {
 
-            @Override
-            public void handle(Exception excptn, Request rqst, Response rspns)
-            {
-                excptn.printStackTrace();
-                rspns.status(500);
-                rspns.body("Somethign wrong happened");
-            }
-        });
+                    @Override
+                    public void handle(Exception excptn, Request rqst, Response rspns)
+                    {
+                        excptn.printStackTrace();
+                        rspns.status(500);
+                        rspns.body("Somethign wrong happened");
+                    }
+                });
 
         // ROUTES
-        Spark.get("/hello", new Route()
-        {
-            @Override
-            public Object handle(Request rqst, Response rspns) throws Exception
-            {
-                return "Hello !!!";
-            }
-        });
-
-        Spark.get("/hello/:id", new Route()
-        {
-            @Override
-            public Object handle(Request rqst, Response rspns) throws Exception
-            {
-                return "Hello " + rqst.params(":id") + " !!!";
-            }
-        });
-
-        Spark.get("/objectToJson", new Route()
-        {
-            @Override
-            public Object handle(Request rqst, Response rspns) throws Exception
-            {
-                return new Person("lucas", "super");
-            }
-        }, new JsonTransformer());
-
-        Spark.get("/mapToJson", new Route()
-        {
-            @Override
-            public Object handle(Request rqst, Response rspns) throws Exception
-            {
-                HashMap map = new HashMap();
-                map.put("name", "lucas");
-                map.put("power", "super");
-                return map;
-            }
-        }, new JsonTransformer());
-
-        Spark.get("/redirect", new Route()
-        {
-            @Override
-            public Object handle(Request rqst, Response rspns) throws Exception
-            {
-                //throw new Exception();
-                rspns.redirect("/hello");
-                return null;
-            }
-        });
-
-        Spark.get("/login/:password", new Route()
-        {
-            @Override
-            public Object handle(Request rqst, Response rspns) throws Exception
-            {
-                String password = rqst.params(":password");
-                if(password.equals(REST_PASSWORD))
+        Spark.get(
+                "/hello", new Route()
                 {
-                    return signObject(new Token("username", System.currentTimeMillis()));
-                }
-                else
+                    @Override
+                    public Object handle(Request rqst, Response rspns) throws Exception
+                    {
+                        return "Hello  on port " + REST_PORT + " !!!";
+                    }
+                });
+
+        Spark.get(
+                "/hello/:id", new Route()
                 {
-                    throw new Exception("can't authentify");
-                }
+                    @Override
+                    public Object handle(Request rqst, Response rspns) throws Exception
+                    {
+                        return "Hello " + rqst.params(":id") + " !!!";
+                    }
+                });
 
-            }
-        });
+        Spark.get(
+                "/objectToJson", new Route()
+                {
+                    @Override
+                    public Object handle(Request rqst, Response rspns) throws Exception
+                    {
+                        return new Person("lucas", "super");
+                    }
+                }, new JsonTransformer());
 
-        Spark.get("/protected", new Route()
-        {
-            @Override
-            public Object handle(Request rqst, Response rspns) throws Exception
-            {
-                return "Private !!!";
-            }
-        });
+        Spark.get(
+                "/mapToJson", new Route()
+                {
+                    @Override
+                    public Object handle(Request rqst, Response rspns) throws Exception
+                    {
+                        HashMap map = new HashMap();
+                        map.put("name", "lucas");
+                        map.put("power", "super");
+                        return map;
+                    }
+                }, new JsonTransformer());
+
+        Spark.get(
+                "/redirect", new Route()
+                {
+                    @Override
+                    public Object handle(Request rqst, Response rspns) throws Exception
+                    {
+                        //throw new Exception();
+                        rspns.redirect("/hello");
+                        return null;
+                    }
+                });
+
+        Spark.get(
+                "/login/:password", new Route()
+                {
+                    @Override
+                    public Object handle(Request rqst, Response rspns) throws Exception
+                    {
+                        String password = rqst.params(":password");
+                        if(password.equals(REST_PASSWORD))
+                        {
+                            return signObject(new Token("username", System.currentTimeMillis()));
+                        }
+                        else
+                        {
+                            throw new Exception("can't authentify");
+                        }
+
+                    }
+                });
+
+        Spark.get(
+                "/protected", new Route()
+                {
+                    @Override
+                    public Object handle(Request rqst, Response rspns) throws Exception
+                    {
+                        return "Private !!!";
+                    }
+                });
     }
 
     ////////////////////////////////////////////////////////////////////////////////

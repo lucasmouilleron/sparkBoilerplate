@@ -1,6 +1,10 @@
 sparkBoilerplate
 ================
 
+A simple Spark REST boilerplate.
+
+![Screenshot](http://grabs.lucasmouilleron.com/Screen%20Shot%202015-11-23%20at%2016.30.13.png)
+
 Install
 -------
 - Install JDK 8
