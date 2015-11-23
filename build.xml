@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="Sparkboilerplate" default="run" basedir=".">
+
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <taskdef name="ivy-configure" classname="org.apache.ivy.ant.IvyConfigure"/>
+    <taskdef name="ivy-resolve" classname="org.apache.ivy.ant.IvyResolve"/>
+    <taskdef name="ivy-retrieve" classname="org.apache.ivy.ant.IvyRetrieve"/>
+    <taskdef name="ivy-publish" classname="org.apache.ivy.ant.IvyPublish"/>
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <property file="build.properties"/>
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <path id="externals.classpath">
+        <fileset dir="${build.libsDir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <target name="run" depends="jar" description="Run app">
+        <java jar="${build.distDir}/${build.jarFile}" dir="." fork="true"/>
+    </target>
+
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <target name="getDependencies" description="Retrieve dependencies with Ivy">
+        <mkdir dir="${build.libsDir}"/>
+        <mkdir dir="${build.libsIvyDir}"/>
+        <ivy:retrieve pattern="${build.libsIvyDir}/[artifact]-[type]-[revision].[ext]"/>
+    </target>
+
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <target name="cleanIvy" description="Clean Ivy cache">
+        <ivy:cleancache/>
+    </target>
+
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <target name="compile" description="Compile app">
+        <mkdir dir="${build.distDir}"/>
+        <mkdir dir="${build.buildDir}"/>
+        <mkdir dir="${build.distDir}/classes"/>
+        <javac srcdir="src" source="${build.java.version}" target="${build.java.version}" destdir="${build.distDir}/classes" classpath="${externals.classpath}" includeantruntime="false" encoding="UTF-8"/>
+    </target>
+
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <target name="jar" depends="compile" description="Jar the app">
+        <mkdir dir="${build.distDir}/lib"/>
+        <copy todir="${build.distDir}/lib" flatten="true">
+            <fileset dir="${build.libsDir}">
+                <include name="**/*.jar"/>
+            </fileset>
+        </copy>
+        <manifestclasspath property="libs.classpath" jarfile="${build.distDir}/${build.jarFile}">
+            <classpath>
+                <fileset dir="${build.distDir}/lib" includes="*.jar"/>
+            </classpath>
+        </manifestclasspath>
+        <manifest file="manifest.mf">
+            <attribute name="Built-By" value="${manifest.built.by}"/>
+            <attribute name="Created-By" value="${manifest.created.by}"/>
+            <attribute name="Main-Class" value="${manifest.main.class}"/>
+            <attribute name="Built-Date" value="${TODAY}"/>
+            <attribute name="Class-Path" value="${libs.classpath}"/>
+        </manifest>
+        <jar basedir="${build.distDir}/classes" destfile="${build.distDir}/${build.jarFile}" includes="**/*.*" manifest="manifest.mf"/>
+        <delete file="manifest.mf"/>
+    </target>
+
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <target name="clean" description="Clean the project">
+        <delete dir="${build.buildDir}"/>
+        <delete dir="${build.distDir}"/>
+    </target>
+
+    <!-- /////////////////////////////////////////////////////////////////// -->
+    <target name="cleanMore" description="Super clean the project">
+        <delete dir="${build.buildDir}"/>
+        <delete dir="${build.distDir}"/>
+        <delete dir="${build.libsIvyDir}"/>
+    </target>
+
+</project>
