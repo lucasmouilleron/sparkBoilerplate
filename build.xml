@@ -15,6 +15,7 @@
             <include name="**/*.jar"/>
         </fileset>
     </path>
+    <property name="externals.classpath" refid="externals.classpath"/>
 
     <!-- /////////////////////////////////////////////////////////////////// -->
     <target name="run" depends="jar" description="Run app">
