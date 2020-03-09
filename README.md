@@ -10,7 +10,7 @@ Install
 - Install JDK 8
 - Install Apache Ant
 - Install Apache Ivy
-- Get dependencies : `an getDependencies`
+- Get dependencies : `ant getDependencies`
 
 Run and test
 ------------

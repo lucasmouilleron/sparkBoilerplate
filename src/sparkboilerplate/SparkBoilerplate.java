@@ -2,17 +2,6 @@ package sparkboilerplate;
 
 import ch.qos.logback.classic.Logger;
 import com.google.gson.Gson;
-
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.HashMap;
-
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.slf4j.LoggerFactory;
@@ -24,6 +13,21 @@ import spark.ResponseTransformer;
 import spark.Route;
 import spark.Spark;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.HashMap;
+import java.util.Random;
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 public class SparkBoilerplate
 {
 
@@ -47,32 +51,54 @@ public class SparkBoilerplate
 
         try
         {
-            disableLog4J();
-            JWTPrivateKey = makeJWTPrivateKey();
-            JWTPublicKey = makeJWTPublicKey();
             initSpark();
         }
         catch(Exception e)
         {
             e.printStackTrace();
         }
-
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     private static void initSpark() throws Exception
     {
+        ////////////////////////////////////////////////////////////////////////////////
         // INIT
+        ////////////////////////////////////////////////////////////////////////////////
+        JWTPrivateKey = makeJWTPrivateKey();
+        JWTPublicKey = makeJWTPublicKey();
+        disableLog4J();
         Spark.port(REST_PORT);
         Spark.secure(SSL_KEYSTORE_FILE, SSL_KEYSTORE_PASSWORD, SSL_TRUSTSTORE_FILE, SSL_TRUSTSTORE_PASSWORD);
+        enableCORS();
 
+
+        ////////////////////////////////////////////////////////////////////////////////
         // FILTERS
-        Filter protectedFiler = new Filter()
+        ////////////////////////////////////////////////////////////////////////////////
+        Filter simpleProtectedFilter = new Filter()
         {
 
             @Override
             public void handle(Request rqst, Response rspns) throws Exception
             {
+                if(rqst.requestMethod().equals("OPTIONS")) {return;}
+                boolean authenticated = rqst.headers("password").equals(REST_PASSWORD);
+                if(!authenticated)
+                {
+                    Spark.halt(401, "You are not welcome here");
+                }
+            }
+        };
+
+        ////////////////////////////////////////////////////////////////////////////////
+        Filter protectedFilter = new Filter()
+        {
+
+            @Override
+            public void handle(Request rqst, Response rspns) throws Exception
+            {
+                if(rqst.requestMethod().equals("OPTIONS")) {return;}
                 boolean authenticated = true;
                 String tokenString = rqst.headers("token");
                 try
@@ -90,108 +116,128 @@ public class SparkBoilerplate
                 }
             }
         };
-        Spark.before("/protected", protectedFiler);
-        Spark.before("/protected/*", protectedFiler);
-        Spark.before("/otherProtected", protectedFiler);
 
+
+        ////////////////////////////////////////////////////////////////////////////////
         // EXCEPTIONS
-        Spark.exception(
-                Exception.class, new ExceptionHandler()
-                {
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.exception(Exception.class, new ExceptionHandler()
+        {
 
-                    @Override
-                    public void handle(Exception excptn, Request rqst, Response rspns)
-                    {
-                        excptn.printStackTrace();
-                        rspns.status(500);
-                        rspns.body("Somethign wrong happened");
-                    }
-                });
+            @Override
+            public void handle(Exception excptn, Request rqst, Response rspns)
+            {
+                excptn.printStackTrace();
+                rspns.status(500);
+                rspns.body("Somethign wrong happened");
+            }
+        });
 
+        ////////////////////////////////////////////////////////////////////////////////
         // ROUTES
-        Spark.get(
-                "/hello", new Route()
-                {
-                    @Override
-                    public Object handle(Request rqst, Response rspns) throws Exception
-                    {
-                        return "Hello  on port " + REST_PORT + " !!!";
-                    }
-                });
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.before("/protected", protectedFilter);
+        Spark.before("/protected/*", protectedFilter);
+        Spark.before("/otherProtected", protectedFilter);
+        Spark.before("/simple-protected/pnl", simpleProtectedFilter);
 
-        Spark.get(
-                "/hello/:id", new Route()
-                {
-                    @Override
-                    public Object handle(Request rqst, Response rspns) throws Exception
-                    {
-                        return "Hello " + rqst.params(":id") + " !!!";
-                    }
-                });
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/hello", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                return "Hello  on port " + REST_PORT + " !!!";
+            }
+        });
 
-        Spark.get(
-                "/objectToJson", new Route()
-                {
-                    @Override
-                    public Object handle(Request rqst, Response rspns) throws Exception
-                    {
-                        return new Person("lucas", "super");
-                    }
-                }, new JsonTransformer());
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/hello/:id", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                return "Hello " + rqst.params(":id") + " !!!";
+            }
+        });
 
-        Spark.get(
-                "/mapToJson", new Route()
-                {
-                    @Override
-                    public Object handle(Request rqst, Response rspns) throws Exception
-                    {
-                        HashMap map = new HashMap();
-                        map.put("name", "lucas");
-                        map.put("power", "super");
-                        return map;
-                    }
-                }, new JsonTransformer());
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/objectToJson", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                return new Person("lucas", "super");
+            }
+        }, new JsonTransformer());
 
-        Spark.get(
-                "/redirect", new Route()
-                {
-                    @Override
-                    public Object handle(Request rqst, Response rspns) throws Exception
-                    {
-                        //throw new Exception();
-                        rspns.redirect("/hello");
-                        return null;
-                    }
-                });
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/mapToJson", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                HashMap map = new HashMap();
+                map.put("name", "lucas");
+                map.put("power", "super");
+                return map;
+            }
+        }, new JsonTransformer());
 
-        Spark.get(
-                "/login/:password", new Route()
-                {
-                    @Override
-                    public Object handle(Request rqst, Response rspns) throws Exception
-                    {
-                        String password = rqst.params(":password");
-                        if(password.equals(REST_PASSWORD))
-                        {
-                            return signObject(new Token("username", System.currentTimeMillis()));
-                        }
-                        else
-                        {
-                            throw new Exception("can't authentify");
-                        }
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/redirect", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                //throw new Exception();
+                rspns.redirect("/hello");
+                return null;
+            }
+        });
 
-                    }
-                });
-
-        Spark.get(
-                "/protected", new Route()
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/login/:password", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                String password = rqst.params(":password");
+                if(password.equals(REST_PASSWORD))
                 {
-                    @Override
-                    public Object handle(Request rqst, Response rspns) throws Exception
-                    {
-                        return "Private !!!";
-                    }
-                });
+                    return signObject(new Token("username", System.currentTimeMillis()));
+                }
+                else
+                {
+                    throw new Exception("can't authentify");
+                }
+
+            }
+        });
+
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/simple-protected/pnl", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                //System.out.println(rqst.headers());
+                HashMap map = new HashMap();
+                map.put("date", System.currentTimeMillis());
+                map.put("pnl", new Random().nextInt());
+                return map;
+            }
+        }, new JsonTransformer());
+
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/protected", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                return "Private !!!";
+            }
+        });
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -291,5 +337,31 @@ public class SparkBoilerplate
             this.name = name;
             this.date = date;
         }
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    private static void enableCORS()
+    {
+        Spark.options("/*", new Route()
+        {
+            @Override
+            public Object handle(Request request, Response response) throws Exception
+            {
+                return "OK";
+            }
+        });
+
+        Filter corsFilter = new Filter()
+        {
+            @Override
+            public void handle(Request request, Response response) throws Exception
+            {
+                response.header("Access-Control-Allow-Origin", "*");
+                response.header("Access-Control-Request-Method", "*");
+                response.header("Access-Control-Allow-Headers", "*");
+            }
+        };
+        Spark.after("/*", corsFilter);
     }
 }

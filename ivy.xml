@@ -9,7 +9,7 @@
     <dependencies>
 
         <!--///////////////////////////////////////////////////////////////-->
-        <dependency org="com.sparkjava" name="spark-core" rev="2.3" />
+        <dependency org="com.sparkjava" name="spark-core" rev="2.8.0" />
 
         <!--///////////////////////////////////////////////////////////////-->
         <dependency org="org.bitbucket.b_c" name="jose4j" rev="0.4.4" />
