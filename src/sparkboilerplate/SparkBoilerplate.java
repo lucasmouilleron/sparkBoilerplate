@@ -139,7 +139,19 @@ public class SparkBoilerplate
         Spark.before("/protected", protectedFilter);
         Spark.before("/protected/*", protectedFilter);
         Spark.before("/otherProtected", protectedFilter);
-        Spark.before("/simple-protected/pnl", simpleProtectedFilter);
+        Spark.before("/pnl", simpleProtectedFilter);
+
+        ////////////////////////////////////////////////////////////////////////////////
+        Spark.get("/ping", new Route()
+        {
+            @Override
+            public Object handle(Request rqst, Response rspns) throws Exception
+            {
+                HashMap map = new HashMap();
+                map.put("pong", System.currentTimeMillis());
+                return map;
+            }
+        }, new JsonTransformer());
 
         ////////////////////////////////////////////////////////////////////////////////
         Spark.get("/hello", new Route()
@@ -149,7 +161,7 @@ public class SparkBoilerplate
             {
                 return "Hello  on port " + REST_PORT + " !!!";
             }
-        });
+        }, new JsonTransformer());
 
         ////////////////////////////////////////////////////////////////////////////////
         Spark.get("/hello/:id", new Route()
@@ -216,12 +228,11 @@ public class SparkBoilerplate
         });
 
         ////////////////////////////////////////////////////////////////////////////////
-        Spark.get("/simple-protected/pnl", new Route()
+        Spark.get("/pnl", new Route()
         {
             @Override
             public Object handle(Request rqst, Response rspns) throws Exception
             {
-                //System.out.println(rqst.headers());
                 HashMap map = new HashMap();
                 map.put("date", System.currentTimeMillis());
                 map.put("pnl", new Random().nextInt());
