@@ -30,7 +30,7 @@ Authentication
 CORS
 ---
 - enableCORS()
-- Beware in filters, bypass OPTIONS requests so it works
+- Beware in filters, bypass `OPTIONS` requests so it works
 
 SSL
 ---
